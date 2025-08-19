@@ -107,8 +107,28 @@ class RAGAgent:
     def add_documents_from_path(self, path: str):
         """パスからドキュメントを追加"""
         from .document_loader import create_document_processor
+        from config.rag_settings import rag_settings
+        import os
+        from pathlib import Path
         
-        processor = create_document_processor()
+        config = rag_settings.get_document_processor_config()
+        
+        path_obj = Path(path)
+        has_csv = False
+        
+        if path_obj.is_dir():
+            csv_files = list(path_obj.glob("*.csv"))
+            has_csv = len(csv_files) > 0
+        elif path_obj.is_file() and path_obj.suffix.lower() == '.csv':
+            has_csv = True
+        
+        if has_csv:
+            processor = create_document_processor(chunk_size=500, chunk_overlap=50)
+            print("📊 CSV最適化チャンクサイズを使用: chunk_size=500, chunk_overlap=50")
+        else:
+            processor = create_document_processor(**config)
+            print(f"📄 標準チャンクサイズを使用: chunk_size={config['chunk_size']}, chunk_overlap={config['chunk_overlap']}")
+        
         documents = processor.load_documents_from_path(path)
         
         if documents:
