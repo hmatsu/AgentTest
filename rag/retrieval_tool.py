@@ -17,7 +17,7 @@ class RAGSearchInput(BaseModel):
 class RAGSearchTool(BaseTool):
     """RAG検索ツール"""
     name: str = "rag_search"
-    description: str = "ドキュメントベースから関連情報を検索します。質問に関連する文書を見つけるために使用してください。"
+    description: str = "ドキュメントベースから関連情報を検索します。レシピ、料理、食材、および読み込まれた文書に関する質問に最適です。web_searchを使用する前に必ずこのツールを試してください。"
     args_schema: Type[BaseModel] = RAGSearchInput
     vector_store: Any = Field(description="Vector store for document retrieval")
     

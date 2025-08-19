@@ -65,7 +65,7 @@ class RAGAgent:
         if self.include_web_search:
             tools.append(DuckDuckGoSearchRun(
                 name="web_search", 
-                description="インターネット検索を行います。最新情報や一般的な質問に使用してください。"
+                description="インターネット検索を行います。最新のニュース、現在の情報、またはドキュメントベースに存在しない情報を検索する場合にのみ使用してください。"
             ))
         
         if self.include_custom_tools:
@@ -84,9 +84,14 @@ class RAGAgent:
 4. calculator: 数学計算
 5. weather: 天気情報
 
+**重要な優先順位ルール**：
+- 質問に対して、必ずまず最初にrag_searchツールを使用してドキュメントベースを検索してください
+- rag_searchで関連する情報が見つかった場合は、その情報を基に回答してください
+- rag_searchで十分な情報が見つからない場合のみ、web_searchを使用してください
+- レシピ、料理、食材、材料に関する質問は特にrag_searchを優先してください
+- ドキュメントベースに情報がある可能性が高い質問では、web_searchを使用する前に必ずrag_searchを試してください
+
 回答の際は：
-- まずRAG検索でドキュメントベースを確認
-- 必要に応じてWeb検索で最新情報を補完
 - 情報源を明確に示す
 - 正確で詳細な回答を提供"""),
             MessagesPlaceholder(variable_name="chat_history"),
