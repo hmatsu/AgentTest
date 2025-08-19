@@ -293,7 +293,8 @@ global_search:
                 self.documents_added.append({
                     'file_path': str(file_path),
                     'source': source,
-                    'content': content[:200] + "..." if len(content) > 200 else content
+                    'content': content,
+                    'preview': content[:200] + "..." if len(content) > 200 else content
                 })
             
             print(f"✅ GraphRAG: {len(documents)}個のドキュメントを入力ディレクトリに保存しました")
@@ -309,11 +310,17 @@ global_search:
         try:
             import subprocess
             import sys
+            import os
             
             print("🔄 GraphRAGインデックスを構築中...")
             
+            if not os.getenv("OPENAI_API_KEY"):
+                print("⚠️ OPENAI_API_KEYが設定されていません。GraphRAGインデックス構築をスキップします。")
+                print("   フォールバック検索機能を使用します。")
+                return
+            
             cmd = [
-                sys.executable, "-m", "graphrag.index",
+                sys.executable, "-m", "graphrag", "index",
                 "--root", str(self.workspace_dir)
             ]
             
@@ -328,8 +335,17 @@ global_search:
                 print("✅ GraphRAGインデックス構築完了")
                 self.is_indexed = True
             else:
-                print(f"❌ GraphRAGインデックス構築エラー: {result.stderr}")
-                print(f"stdout: {result.stdout}")
+                error_msg = result.stderr.strip()
+                if "AuthenticationError" in error_msg or "invalid_api_key" in error_msg:
+                    print("⚠️ OpenAI API認証エラー: 有効なAPIキーが必要です")
+                    print("   フォールバック検索機能を使用します。")
+                elif "No module named graphrag" in error_msg:
+                    print("❌ GraphRAGライブラリが見つかりません")
+                    print(f"   エラー詳細: {error_msg}")
+                else:
+                    print(f"❌ GraphRAGインデックス構築エラー: {error_msg}")
+                    if result.stdout:
+                        print(f"   stdout: {result.stdout}")
                 
         except Exception as e:
             print(f"❌ GraphRAGインデックス構築例外: {e}")
@@ -355,7 +371,7 @@ global_search:
             import sys
             
             cmd = [
-                sys.executable, "-m", "graphrag.query",
+                sys.executable, "-m", "graphrag", "query",
                 "--root", str(self.workspace_dir),
                 "--method", "local",
                 query
@@ -395,21 +411,65 @@ global_search:
     def _fallback_search(self, query: str, k: int = 4) -> List[Document]:
         """フォールバック検索（シンプルなテキストマッチング）"""
         results = []
+        query_terms = [term.lower().strip() for term in query.split() if len(term.strip()) > 2]
+        
+        japanese_to_english = {
+            'ドキュメント': ['document', 'content', 'text', 'file'],
+            '内容': ['content', 'text', 'information'],
+            '情報': ['information', 'data', 'content'],
+            '機能': ['function', 'feature', 'capability'],
+            '概念': ['concept', 'idea', 'notion'],
+            '用語': ['term', 'word', 'terminology'],
+            '関連': ['related', 'relevant', 'associated']
+        }
+        
+        japanese_terms = []
+        english_equivalents = []
+        if any(ord(char) > 127 for char in query):
+            japanese_terms = [query.lower()]
+            for jp_word, en_words in japanese_to_english.items():
+                if jp_word in query:
+                    english_equivalents.extend(en_words)
+        
+        all_query_terms = [term.lower().strip() for term in query.split() if len(term.strip()) > 1]
+        all_terms = query_terms + japanese_terms + english_equivalents + all_query_terms
         
         for doc_info in self.documents_added:
             content = doc_info['content']
-            if any(term.lower() in content.lower() for term in query.split()):
+            content_lower = content.lower()
+            
+            score = 0
+            for term in all_terms:
+                if term in content_lower:
+                    score += content_lower.count(term)
+            
+            if score > 0:
+                full_content = content
+                if len(full_content) > 1000:
+                    for term in all_terms:
+                        if term in content_lower:
+                            start_idx = max(0, content_lower.find(term) - 200)
+                            end_idx = min(len(content), start_idx + 800)
+                            full_content = content[start_idx:end_idx]
+                            if start_idx > 0:
+                                full_content = "..." + full_content
+                            if end_idx < len(content):
+                                full_content = full_content + "..."
+                            break
+                
                 doc = Document(
-                    page_content=content,
+                    page_content=full_content,
                     metadata={
                         'source': doc_info['source'],
                         'search_type': 'fallback',
-                        'query': query
+                        'query': query,
+                        'score': score
                     }
                 )
-                results.append(doc)
+                results.append((score, doc))
         
-        return results[:k]
+        results.sort(key=lambda x: x[0], reverse=True)
+        return [doc for score, doc in results[:k]]
     
     def save(self, path: str) -> None:
         """GraphRAGワークスペースを保存"""
