@@ -114,8 +114,24 @@ class RAGAgent:
         if documents:
             self.vector_store.add_documents(documents)
             print(f"✅ {len(documents)}個のドキュメントチャンクを追加しました")
+            
+            self._list_loaded_sources(documents)
         else:
             print("❌ ドキュメントの読み込みに失敗しました")
+    
+    def _list_loaded_sources(self, documents):
+        """読み込まれたドキュメントの出典一覧を表示"""
+        sources = {}
+        for doc in documents:
+            source = doc.metadata.get('source', '不明')
+            if source not in sources:
+                sources[source] = 0
+            sources[source] += 1
+        
+        print("\n📋 読み込まれたファイル一覧:")
+        for source, count in sources.items():
+            print(f"  📄 {source} ({count}チャンク)")
+        print()
     
     def add_documents_from_text(self, text: str, metadata: Optional[dict] = None):
         """テキストからドキュメントを追加"""
