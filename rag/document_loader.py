@@ -74,20 +74,9 @@ class DocumentProcessor:
             print(f"CSVファイル読み込みエラー: {e}")
             return []
     
-    def load_directory(self, directory_path: str, glob_pattern: str = "**/*.txt") -> List[Document]:
-        """ディレクトリから複数ファイルを読み込み"""
-        try:
-            loader = DirectoryLoader(
-                directory_path, 
-                glob=glob_pattern,
-                loader_cls=TextLoader,
-                loader_kwargs={'encoding': 'utf-8'}
-            )
-            documents = loader.load()
-            return self.text_splitter.split_documents(documents)
-        except Exception as e:
-            print(f"ディレクトリ読み込みエラー: {e}")
-            return []
+    def load_directory(self, directory_path: str, glob_pattern: str = "**/*") -> List[Document]:
+        """ディレクトリから複数ファイルを読み込み（全ファイル形式対応）"""
+        return self.load_directory_all_types(directory_path)
     
     def load_web_pages(self, urls: List[str]) -> List[Document]:
         """Webページを読み込み"""
