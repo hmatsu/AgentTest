@@ -112,10 +112,15 @@ class RAGAgent:
         documents = processor.load_documents_from_path(path)
         
         if documents:
-            self.vector_store.add_documents(documents)
-            print(f"✅ {len(documents)}個のドキュメントチャンクを追加しました")
-            
-            self._list_loaded_sources(documents)
+            try:
+                self.vector_store.add_documents(documents)
+                print(f"✅ {len(documents)}個のドキュメントチャンクを追加しました")
+                
+                self._list_loaded_sources(documents)
+            except Exception as e:
+                print(f"❌ ベクトルストアへの追加エラー: {e}")
+                import traceback
+                traceback.print_exc()
         else:
             print("❌ ドキュメントの読み込みに失敗しました")
     

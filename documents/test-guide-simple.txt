@@ -1,0 +1,1 @@
+VP Field Guide Test Content - This is a test document to verify the enhanced PDF loading error handling and debugging functionality.

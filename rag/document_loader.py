@@ -137,20 +137,33 @@ class DocumentProcessor:
         
         supported_extensions = {'.txt': self.load_text_file, '.pdf': self.load_pdf_file, '.csv': self.load_csv_file}
         
+        files_found = 0
+        files_processed = 0
+        
         for file_path in directory.iterdir():
             if file_path.is_file():
                 suffix = file_path.suffix.lower()
                 if suffix in supported_extensions:
+                    files_found += 1
                     print(f"  📄 {file_path.name} を処理中...")
                     try:
                         documents = supported_extensions[suffix](str(file_path))
                         if documents:
                             all_documents.extend(documents)
+                            files_processed += 1
                             print(f"    ✅ {len(documents)}個のチャンクを読み込みました")
                         else:
                             print(f"    ⚠️  {file_path.name} からドキュメントを読み込めませんでした")
                     except Exception as e:
                         print(f"    ❌ {file_path.name} の読み込みエラー: {e}")
+                        import traceback
+                        traceback.print_exc()
+        
+        print(f"\n📊 処理結果: {files_processed}/{files_found} ファイルが正常に処理されました")
+        if all_documents:
+            print(f"✅ 合計 {len(all_documents)}個のドキュメントチャンクを読み込みました")
+        else:
+            print("❌ 読み込み可能なドキュメントが見つかりませんでした")
         
         return all_documents
     
