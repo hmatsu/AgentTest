@@ -192,6 +192,77 @@ class RAGAgent:
         self.vector_store.load(path)
         print(f"✅ ベクトルストアを読み込みました: {path}")
 
+class GraphRAGAgent(RAGAgent):
+    """GraphRAG対応エージェント"""
+    
+    def __init__(self, **kwargs):
+        kwargs['vector_store'] = create_vector_store("graphrag")
+        super().__init__(**kwargs)
+    
+    def _create_tools(self):
+        """GraphRAG専用ツールリストを作成"""
+        tools = []
+        
+        rag_tools = create_rag_tools(self.vector_store)
+        tools.extend(rag_tools)
+        
+        from .retrieval_tool import create_graphrag_tools
+        graphrag_tools = create_graphrag_tools(self.vector_store)
+        tools.extend(graphrag_tools)
+        
+        if self.include_web_search:
+            tools.append(DuckDuckGoSearchRun(
+                name="web_search", 
+                description="インターネット検索を行います。GraphRAGとRAGで情報が見つからない場合にのみ使用してください。"
+            ))
+        
+        if self.include_custom_tools:
+            tools.extend(get_custom_tools())
+        
+        return tools
+    
+    def _create_agent(self):
+        """GraphRAG対応エージェントを作成"""
+        prompt = ChatPromptTemplate.from_messages([
+            ("system", """あなたは知識豊富なアシスタントです。以下のツールを使用して質問に答えてください：
+
+1. rag_search: 従来のRAG検索（ベクトル類似度ベース）
+2. rag_summarize: 検索した文書の要約
+3. graphrag_entity_search: GraphRAGエンティティ検索（関係性重視）
+4. graphrag_relationship_search: GraphRAG関係性検索（複雑な関係分析）
+5. web_search: インターネット検索（最新情報用）
+6. calculator: 数学計算
+7. weather: 天気情報
+
+**重要な優先順位ルール**：
+- 質問に対して、まずgraphrag_entity_searchまたはgraphrag_relationship_searchを使用してGraphRAG検索を試してください
+- GraphRAGで十分な情報が得られない場合は、従来のrag_searchを使用してください
+- それでも情報が不足する場合のみ、web_searchを使用してください
+- エンティティや関係性に関する質問はgraphrag_entity_searchを優先してください
+- 複雑な関係や因果関係の質問はgraphrag_relationship_searchを優先してください
+
+回答の際は：
+- 情報源を明確に示す
+- GraphRAGと従来のRAGの結果を比較して、より詳細で正確な回答を提供"""),
+            MessagesPlaceholder(variable_name="chat_history"),
+            ("human", "{input}"),
+            MessagesPlaceholder(variable_name="agent_scratchpad"),
+        ])
+        
+        agent = create_openai_functions_agent(self.llm, self.tools, prompt)
+        
+        return AgentExecutor(
+            agent=agent,
+            tools=self.tools,
+            memory=self.memory,
+            verbose=True,
+            max_iterations=10
+        )
+
 def create_rag_agent(**kwargs) -> RAGAgent:
     """RAGエージェントファクトリー"""
     return RAGAgent(**kwargs)
+
+def create_graphrag_agent(**kwargs) -> GraphRAGAgent:
+    """GraphRAGエージェントファクトリー"""
+    return GraphRAGAgent(**kwargs)

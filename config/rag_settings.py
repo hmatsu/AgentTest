@@ -26,6 +26,10 @@ class RAGSettings:
         self.max_iterations = int(os.getenv("RAG_MAX_ITERATIONS", "10"))
         
         self.documents_directory = os.getenv("DOCUMENTS_DIR", "./documents")
+        
+        self.graphrag_workspace = os.getenv("GRAPHRAG_WORKSPACE", "./graphrag_workspace")
+        self.graphrag_model = os.getenv("GRAPHRAG_MODEL", "gpt-3.5-turbo")
+        self.graphrag_embedding_model = os.getenv("GRAPHRAG_EMBEDDING_MODEL", "text-embedding-ada-002")
     
     def get_vector_store_config(self) -> Dict[str, Any]:
         """ベクトルストア設定を取得"""

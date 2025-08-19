@@ -87,9 +87,95 @@ class RAGSummarizeTool(BaseTool):
         """非同期実行（同期版を呼び出し）"""
         return self._run(query, k)
 
+class GraphRAGEntitySearchTool(BaseTool):
+    """GraphRAGエンティティ検索ツール"""
+    name: str = "graphrag_entity_search"
+    description: str = "GraphRAGを使用してエンティティとその関係性に基づいて検索します。人物、組織、概念間の関係を理解する質問に最適です。"
+    args_schema: Type[BaseModel] = RAGSearchInput
+    vector_store: Any = Field(description="GraphRAG vector store for entity-based retrieval")
+    
+    class Config:
+        arbitrary_types_allowed = True
+    
+    def _run(self, query: str, k: int = 4) -> str:
+        """GraphRAGエンティティ検索を実行"""
+        try:
+            documents = self.vector_store.similarity_search(query, k=k)
+            
+            if not documents:
+                return "関連するエンティティが見つかりませんでした。"
+            
+            result = f"GraphRAGエンティティ検索「{query}」の結果を{len(documents)}件見つけました:\n\n"
+            
+            for i, doc in enumerate(documents, 1):
+                content = doc.page_content[:800]
+                if len(doc.page_content) > 800:
+                    content += "..."
+                
+                source = doc.metadata.get('source', '不明')
+                search_type = doc.metadata.get('search_type', 'unknown')
+                result += f"【GraphRAG結果{i}】(出典: {source}, 検索タイプ: {search_type})\n{content}\n\n"
+            
+            return result
+            
+        except Exception as e:
+            return f"GraphRAGエンティティ検索エラーが発生しました: {str(e)}"
+    
+    async def _arun(self, query: str, k: int = 4) -> str:
+        """非同期実行（同期版を呼び出し）"""
+        return self._run(query, k)
+
+class GraphRAGRelationshipTool(BaseTool):
+    """GraphRAG関係性検索ツール"""
+    name: str = "graphrag_relationship_search"
+    description: str = "GraphRAGを使用してエンティティ間の関係性を検索します。複雑な関係性や因果関係を理解する質問に最適です。"
+    args_schema: Type[BaseModel] = RAGSearchInput
+    vector_store: Any = Field(description="GraphRAG vector store for relationship queries")
+    
+    class Config:
+        arbitrary_types_allowed = True
+    
+    def _run(self, query: str, k: int = 4) -> str:
+        """GraphRAG関係性検索を実行"""
+        try:
+            documents = self.vector_store.similarity_search(f"関係性: {query}", k=k)
+            
+            if not documents:
+                return "関連する関係性が見つかりませんでした。"
+            
+            result = f"GraphRAG関係性検索「{query}」の結果を{len(documents)}件見つけました:\n\n"
+            
+            for i, doc in enumerate(documents, 1):
+                content = doc.page_content[:800]
+                if len(doc.page_content) > 800:
+                    content += "..."
+                
+                source = doc.metadata.get('source', '不明')
+                search_type = doc.metadata.get('search_type', 'unknown')
+                result += f"【関係性結果{i}】(出典: {source}, 検索タイプ: {search_type})\n{content}\n\n"
+            
+            return result
+            
+        except Exception as e:
+            return f"GraphRAG関係性検索エラーが発生しました: {str(e)}"
+    
+    async def _arun(self, query: str, k: int = 4) -> str:
+        """非同期実行（同期版を呼び出し）"""
+        return self._run(query, k)
+
 def create_rag_tools(vector_store: VectorStoreManager) -> List[BaseTool]:
     """RAGツールのリストを作成"""
     return [
         RAGSearchTool(vector_store=vector_store),
         RAGSummarizeTool(vector_store=vector_store)
     ]
+
+def create_graphrag_tools(vector_store: VectorStoreManager) -> List[BaseTool]:
+    """GraphRAGツールのリストを作成"""
+    from .vector_store import GraphRAGVectorStore
+    if isinstance(vector_store, GraphRAGVectorStore):
+        return [
+            GraphRAGEntitySearchTool(vector_store=vector_store),
+            GraphRAGRelationshipTool(vector_store=vector_store)
+        ]
+    return []
