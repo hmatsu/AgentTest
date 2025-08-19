@@ -321,7 +321,7 @@ global_search:
             
             cmd = [
                 sys.executable, "-m", "graphrag", "index",
-                "--root", str(self.workspace_dir)
+                "--root", "."
             ]
             
             result = subprocess.run(
@@ -372,7 +372,7 @@ global_search:
             
             cmd = [
                 sys.executable, "-m", "graphrag", "query",
-                "--root", str(self.workspace_dir),
+                "--root", ".",
                 "--method", "local",
                 query
             ]
