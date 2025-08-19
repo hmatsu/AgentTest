@@ -25,6 +25,23 @@ def setup_rag_example():
         print(f"❌ RAGエージェント作成エラー: {e}")
         return None
     
+    documents_dir = rag_settings.documents_directory
+    if os.path.exists(documents_dir):
+        doc_files = []
+        for ext in ['.txt', '.pdf', '.csv']:
+            doc_files.extend([f for f in os.listdir(documents_dir) if f.endswith(ext)])
+        
+        if doc_files:
+            print(f"\n📄 documentsディレクトリからファイルを読み込み中...")
+            print(f"見つかったファイル: {', '.join(doc_files)}")
+            
+            try:
+                agent.add_documents_from_path(documents_dir)
+                return agent
+            except Exception as e:
+                print(f"⚠️  ファイル読み込みエラー: {e}")
+                print("💡 サンプルドキュメントを使用します")
+    
     print("\n📄 サンプルドキュメントを追加中...")
     sample_documents = [
         {

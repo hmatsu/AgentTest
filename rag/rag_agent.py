@@ -65,7 +65,7 @@ class RAGAgent:
         if self.include_web_search:
             tools.append(DuckDuckGoSearchRun(
                 name="web_search", 
-                description="インターネット検索を行います。最新情報や一般的な質問に使用してください。"
+                description="インターネット検索を行います。最新のニュース、現在の情報、またはドキュメントベースに存在しない情報を検索する場合にのみ使用してください。"
             ))
         
         if self.include_custom_tools:
@@ -84,9 +84,14 @@ class RAGAgent:
 4. calculator: 数学計算
 5. weather: 天気情報
 
+**重要な優先順位ルール**：
+- 質問に対して、必ずまず最初にrag_searchツールを使用してドキュメントベースを検索してください
+- rag_searchで関連する情報が見つかった場合は、その情報を基に回答してください
+- rag_searchで十分な情報が見つからない場合のみ、web_searchを使用してください
+- レシピ、料理、食材、材料に関する質問は特にrag_searchを優先してください
+- ドキュメントベースに情報がある可能性が高い質問では、web_searchを使用する前に必ずrag_searchを試してください
+
 回答の際は：
-- まずRAG検索でドキュメントベースを確認
-- 必要に応じてWeb検索で最新情報を補完
 - 情報源を明確に示す
 - 正確で詳細な回答を提供"""),
             MessagesPlaceholder(variable_name="chat_history"),
@@ -107,15 +112,56 @@ class RAGAgent:
     def add_documents_from_path(self, path: str):
         """パスからドキュメントを追加"""
         from .document_loader import create_document_processor
+        from config.rag_settings import rag_settings
+        import os
+        from pathlib import Path
         
-        processor = create_document_processor()
+        config = rag_settings.get_document_processor_config()
+        
+        path_obj = Path(path)
+        has_csv = False
+        
+        if path_obj.is_dir():
+            csv_files = list(path_obj.glob("*.csv"))
+            has_csv = len(csv_files) > 0
+        elif path_obj.is_file() and path_obj.suffix.lower() == '.csv':
+            has_csv = True
+        
+        if has_csv:
+            processor = create_document_processor(chunk_size=500, chunk_overlap=50)
+            print("📊 CSV最適化チャンクサイズを使用: chunk_size=500, chunk_overlap=50")
+        else:
+            processor = create_document_processor(**config)
+            print(f"📄 標準チャンクサイズを使用: chunk_size={config['chunk_size']}, chunk_overlap={config['chunk_overlap']}")
+        
         documents = processor.load_documents_from_path(path)
         
         if documents:
-            self.vector_store.add_documents(documents)
-            print(f"✅ {len(documents)}個のドキュメントチャンクを追加しました")
+            try:
+                self.vector_store.add_documents(documents)
+                print(f"✅ {len(documents)}個のドキュメントチャンクを追加しました")
+                
+                self._list_loaded_sources(documents)
+            except Exception as e:
+                print(f"❌ ベクトルストアへの追加エラー: {e}")
+                import traceback
+                traceback.print_exc()
         else:
             print("❌ ドキュメントの読み込みに失敗しました")
+    
+    def _list_loaded_sources(self, documents):
+        """読み込まれたドキュメントの出典一覧を表示"""
+        sources = {}
+        for doc in documents:
+            source = doc.metadata.get('source', '不明')
+            if source not in sources:
+                sources[source] = 0
+            sources[source] += 1
+        
+        print("\n📋 読み込まれたファイル一覧:")
+        for source, count in sources.items():
+            print(f"  📄 {source} ({count}チャンク)")
+        print()
     
     def add_documents_from_text(self, text: str, metadata: Optional[dict] = None):
         """テキストからドキュメントを追加"""
