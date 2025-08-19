@@ -13,8 +13,8 @@ class CalculatorInput(BaseModel):
 
 class CalculatorTool(BaseTool):
     """シンプルな計算機ツール"""
-    name = "calculator"
-    description = "数学的な計算を実行します。基本的な算術演算（+, -, *, /）をサポートします。"
+    name: str = "calculator"
+    description: str = "数学的な計算を実行します。基本的な算術演算（+, -, *, /）をサポートします。"
     args_schema: Type[BaseModel] = CalculatorInput
     
     def _run(self, expression: str) -> str:
@@ -39,8 +39,8 @@ class WeatherInput(BaseModel):
 
 class WeatherTool(BaseTool):
     """天気情報取得ツール（デモ用）"""
-    name = "weather"
-    description = "指定された都市の現在の天気情報を取得します。"
+    name: str = "weather"
+    description: str = "指定された都市の現在の天気情報を取得します。"
     args_schema: Type[BaseModel] = WeatherInput
     
     def _run(self, city: str) -> str:
