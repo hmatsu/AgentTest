@@ -131,6 +131,22 @@ class GraphRAGVectorStore(VectorStoreManager):
     """Microsoft GraphRAG実装"""
     
     def __init__(self, workspace_dir: str = "./graphrag_workspace"):
+        import sys
+        if sys.version_info >= (3, 13):
+            raise RuntimeError(
+                f"GraphRAGはPython 3.13をサポートしていません。現在のバージョン: {sys.version}\n"
+                "Python 3.10-3.12を使用してください。"
+            )
+        
+        try:
+            import graphrag
+        except ImportError:
+            raise ImportError(
+                "GraphRAGライブラリがインストールされていません。\n"
+                f"Python {sys.version_info.major}.{sys.version_info.minor}では、以下のコマンドでインストールしてください:\n"
+                "pip install 'graphrag>=2.5.0'"
+            )
+        
         self.workspace_dir = Path(workspace_dir)
         self.embeddings = self._get_embeddings()
         self.is_indexed = False

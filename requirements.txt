@@ -15,5 +15,5 @@ beautifulsoup4>=4.12.0
 requests>=2.31.0
 duckduckgo-search>=8.0.0
 
-# GraphRAG dependencies
-graphrag>=2.5.0
+# GraphRAG dependencies (requires Python 3.10-3.12)
+graphrag>=2.5.0; python_version>="3.10" and python_version<"3.13"

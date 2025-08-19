@@ -104,9 +104,29 @@ def simple_comparison():
     except Exception as e:
         print(f"❌ GraphRAGテストエラー: {e}")
 
-if __name__ == "__main__":
+def main():
+    """メイン比較実験"""
+    import sys
+    if sys.version_info >= (3, 13):
+        print("❌ GraphRAGはPython 3.13をサポートしていません")
+        print("   Python 3.10-3.12を使用してください")
+        print("   従来のRAGのみでテストを実行します...")
+        
+        try:
+            from rag.rag_agent import create_rag_agent
+            rag_agent = create_rag_agent()
+            rag_agent.add_documents_from_path("documents/")
+            result = rag_agent.chat("ドキュメントの内容を教えてください")
+            print(f"従来のRAG結果: {result}")
+        except Exception as e:
+            print(f"❌ 従来のRAGテストエラー: {e}")
+        return
+    
     if os.getenv("OPENAI_API_KEY"):
         compare_rag_approaches()
     else:
         print("⚠️ OPENAI_API_KEYが設定されていません。シンプル比較を実行します。")
         simple_comparison()
+
+if __name__ == "__main__":
+    main()
