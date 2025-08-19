@@ -123,9 +123,18 @@ def main():
         return
     
     if os.getenv("OPENAI_API_KEY"):
+        print("🔑 OpenAI APIキーが設定されています。完全なGraphRAG比較を実行します。")
         compare_rag_approaches()
     else:
-        print("⚠️ OPENAI_API_KEYが設定されていません。シンプル比較を実行します。")
+        print("⚠️ OPENAI_API_KEYが設定されていません。")
+        print("   GraphRAGの完全な機能を使用するには、OpenAI APIキーが必要です。")
+        print("   現在はフォールバック検索機能での比較を実行します。")
+        print()
+        print("💡 完全なGraphRAG機能を試すには:")
+        print("   1. https://platform.openai.com/account/api-keys でAPIキーを取得")
+        print("   2. 環境変数を設定: OPENAI_API_KEY=your_key_here")
+        print("   3. このスクリプトを再実行")
+        print()
         simple_comparison()
 
 if __name__ == "__main__":

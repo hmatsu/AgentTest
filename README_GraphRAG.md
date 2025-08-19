@@ -24,12 +24,26 @@ pip install -r requirements.txt
 python check_python_compatibility.py
 ```
 
-3. GraphRAG機能をテスト:
+3. **重要**: OpenAI APIキーを設定:
+```bash
+# Windows
+set OPENAI_API_KEY=your_openai_api_key_here
+
+# Linux/Mac
+export OPENAI_API_KEY=your_openai_api_key_here
+```
+
+4. GraphRAG CLIテスト:
+```bash
+python test_graphrag_cli.py
+```
+
+5. GraphRAG機能をテスト:
 ```bash
 python graphrag_example.py
 ```
 
-4. RAG vs GraphRAG比較:
+6. RAG vs GraphRAG比較:
 ```bash
 python graph_rag_comparison.py
 ```
@@ -56,7 +70,21 @@ python rag_example.py
 | エンティティ検索 | ❌ | ✅ |
 | 関係性検索 | ❌ | ✅ |
 | グラフベース推論 | ❌ | ✅ |
+| フォールバック検索 | ❌ | ✅ |
+| OpenAI API要件 | ❌ | ✅ |
 | Python 3.13サポート | ✅ | ❌ |
+
+## 注意事項
+
+**GraphRAGの制限**:
+- OpenAI APIキーが必要（有料）
+- インデックス構築に時間がかかる場合がある
+- 大量のドキュメントでは高いAPI使用料が発生する可能性
+
+**フォールバック機能**:
+- APIキーがない場合、自動的にフォールバック検索を使用
+- 日本語-英語クロス言語検索をサポート
+- 基本的なテキストマッチング機能を提供
 
 ## トラブルシューティング
 
@@ -67,12 +95,27 @@ ERROR: Could not find a version that satisfies the requirement graphrag>=2.5.0
 
 **解決方法**: Python 3.10-3.12を使用してください。
 
+### GraphRAGインデックス構築エラー
+```
+❌ GraphRAGインデックス構築エラー: AuthenticationError
+```
+
+**解決方法**: 有効なOpenAI APIキーが必要です。
+1. [OpenAI Platform](https://platform.openai.com/account/api-keys)でAPIキーを取得
+2. 環境変数に設定: `OPENAI_API_KEY=your_key_here`
+3. APIキーなしでも、フォールバック検索機能は利用可能です
+
 ### 互換性チェック
 ```bash
 python check_python_compatibility.py
 ```
 
-このスクリプトで現在の環境でGraphRAGが利用可能かチェックできます。
+### CLIコマンドテスト
+```bash
+python test_graphrag_cli.py
+```
+
+これらのスクリプトで現在の環境でGraphRAGが利用可能かチェックできます。
 
 ## 推奨環境
 
