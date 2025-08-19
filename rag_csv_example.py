@@ -39,12 +39,16 @@ def main():
         for csv_file in csv_files:
             csv_path = os.path.join(documents_dir, csv_file)
             print(f"  📄 {csv_file} を処理中...")
-            documents = doc_processor.load_csv_file(csv_path)
-            if documents:
-                all_documents.extend(documents)
-                print(f"    ✅ {len(documents)}個のチャンクを読み込みました")
-            else:
-                print(f"    ❌ {csv_file} の読み込みに失敗しました")
+            try:
+                documents = doc_processor.load_csv_file(csv_path)
+                if documents:
+                    all_documents.extend(documents)
+                    print(f"    ✅ {len(documents)}個のチャンクを読み込みました")
+                else:
+                    print(f"    ⚠️  {csv_file} は空またはサポートされていない形式です")
+            except Exception as e:
+                print(f"    ❌ {csv_file} の読み込みエラー: {e}")
+                print(f"    💡 ファイルがUTF-8エンコーディングで保存されているか確認してください")
         
         if not all_documents:
             print("❌ CSVファイルの読み込みに失敗しました")

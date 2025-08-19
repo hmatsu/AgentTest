@@ -110,6 +110,25 @@ python main.py
 
 ### RAG使用方法
 
+#### CSVファイルの読み込み
+
+**重要**: CSVファイルを読み込む場合は、必ず `rag_csv_example.py` を使用してください。
+
+```bash
+# CSVファイル専用スクリプト（推奨）
+python rag_csv_example.py
+
+# 汎用ドキュメント読み込みスクリプト
+python rag_example_no_env.py
+```
+
+**スクリプトの違い**:
+- `rag_example.py`: 固定のサンプルデータを使用（LangChain、RAGの説明）
+- `rag_csv_example.py`: documentsディレクトリからCSVファイルを読み込み
+- `rag_example_no_env.py`: .envファイルを使わずに動作、全ファイル形式対応
+
+CSVファイルは `documents/` ディレクトリに配置してください。
+
 #### 1. ドキュメントの準備
 ```bash
 # documentsディレクトリを作成
