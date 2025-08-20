@@ -3,20 +3,20 @@ skip_workflows: []
 
 models:
   default_chat_model:
-    api_key: "dummy_key"
+    api_key: ${OPENAI_API_KEY}
     type: openai_chat
     model: gpt-3.5-turbo
     model_supports_json: true
     max_tokens: 4000
     temperature: 0.0
   default_embedding_model:
-    api_key: "dummy_key"
+    api_key: ${OPENAI_API_KEY}
     type: openai_embedding
     model: text-embedding-ada-002
     max_tokens: 8191
 
 llm:
-  api_key: "dummy_key"
+  api_key: ${OPENAI_API_KEY}
   type: openai_chat
   model: gpt-3.5-turbo
   model_supports_json: true
@@ -32,7 +32,7 @@ async_mode: threaded
 embeddings:
   async_mode: threaded
   llm:
-    api_key: "dummy_key"
+    api_key: ${OPENAI_API_KEY}
     type: openai_embedding
     model: text-embedding-ada-002
     max_tokens: 8191
