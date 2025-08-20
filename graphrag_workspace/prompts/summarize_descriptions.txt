@@ -1,0 +1,9 @@
+
+You are an AI assistant that helps summarize entity descriptions.
+
+Given a list of entity descriptions, provide a comprehensive summary that captures the key information about each entity.
+
+Entity Descriptions:
+{entity_descriptions}
+
+Summary:

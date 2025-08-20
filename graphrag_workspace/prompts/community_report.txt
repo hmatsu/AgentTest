@@ -1,0 +1,9 @@
+
+You are an AI assistant that creates community reports.
+
+Create a comprehensive report about the community based on the provided information:
+
+Community Information:
+{community_info}
+
+Report:

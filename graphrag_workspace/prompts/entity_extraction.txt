@@ -1,0 +1,9 @@
+
+You are an AI assistant that extracts entities and relationships from text.
+
+Extract all entities (people, organizations, locations, concepts) and their relationships from the following text:
+
+Text:
+{input_text}
+
+Entities and Relationships:
