@@ -33,3 +33,9 @@ MANIFEST
 # OS
 .DS_Store
 Thumbs.db
+
+# Vector databases and GraphRAG workspace
+chroma_db/
+graphrag_workspace/input/
+graphrag_workspace/logs/
+graphrag_workspace/output/
