@@ -328,7 +328,8 @@ global_search:
                 cmd,
                 capture_output=True,
                 text=True,
-                cwd=str(self.workspace_dir)
+                cwd=str(self.workspace_dir),
+                env=os.environ.copy()
             )
             
             if result.returncode == 0:
@@ -381,7 +382,8 @@ global_search:
                 cmd,
                 capture_output=True,
                 text=True,
-                cwd=str(self.workspace_dir)
+                cwd=str(self.workspace_dir),
+                env=os.environ.copy()
             )
             
             if result.returncode == 0:
