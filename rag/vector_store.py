@@ -313,6 +313,7 @@ global_search:
             import os
             
             print("🔄 GraphRAGインデックスを構築中...")
+            print("⏰ タイムアウト: 300秒（5分）")
             
             if not os.getenv("OPENAI_API_KEY"):
                 print("⚠️ OPENAI_API_KEYが設定されていません。GraphRAGインデックス構築をスキップします。")
@@ -329,7 +330,8 @@ global_search:
                 capture_output=True,
                 text=True,
                 cwd=str(self.workspace_dir),
-                env=os.environ.copy()
+                env=os.environ.copy(),
+                timeout=300  # 5分のタイムアウト
             )
             
             if result.returncode == 0:
@@ -348,10 +350,16 @@ global_search:
                     if result.stdout:
                         print(f"   stdout: {result.stdout}")
                 
+        except subprocess.TimeoutExpired:
+            print("⏰ GraphRAGインデックス構築がタイムアウトしました（5分）")
+            print("💡 大きなデータセットの場合、より長い時間が必要な場合があります")
+            print("🔄 フォールバック検索機能を使用します")
+            self.is_indexed = False
         except Exception as e:
             print(f"❌ GraphRAGインデックス構築例外: {e}")
             import traceback
             traceback.print_exc()
+            self.is_indexed = False
     
     def similarity_search(self, query: str, k: int = 4) -> List[Document]:
         """GraphRAGを使用した検索"""
@@ -383,7 +391,8 @@ global_search:
                 capture_output=True,
                 text=True,
                 cwd=str(self.workspace_dir),
-                env=os.environ.copy()
+                env=os.environ.copy(),
+                timeout=60  # 1分のタイムアウト
             )
             
             if result.returncode == 0:
@@ -406,6 +415,9 @@ global_search:
                 print(f"GraphRAG検索エラー: {result.stderr}")
                 return self._fallback_search(query, k)
                 
+        except subprocess.TimeoutExpired:
+            print("⏰ GraphRAG検索がタイムアウトしました（1分）")
+            return self._fallback_search(query, k)
         except Exception as e:
             print(f"GraphRAG検索例外: {e}")
             return self._fallback_search(query, k)
