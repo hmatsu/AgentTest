@@ -383,7 +383,7 @@ global_search:
                 sys.executable, "-m", "graphrag", "query",
                 "--root", ".",
                 "--method", "local",
-                query
+                "--query", query
             ]
             
             result = subprocess.run(
